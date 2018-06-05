@@ -1,5 +1,7 @@
 var inquirer = require('inquirer');
 var mysql = require('mysql');
+var cTable = require('console.table');
+var table;
 
 //create connection
 var connection = mysql.createConnection({
@@ -37,3 +39,25 @@ function inventory() {
         }
     })
 }
+
+
+function viewProducts() {
+    connection.query("SELECT * FROM products", function (err, res) {
+        var productTable = [];
+        for (var i = 0; i < res.length; i++) {
+            productTable[i] = 
+            {
+                ID: res[i].item_id,
+                Product: res[i].product_name,
+                Department: res[i].department_name,
+                Price: res[i].price,
+                Stock_Quantity: res[i].stock_quantity
+            };
+        }
+        console.table('Product Inventory', productTable);
+           
+    })
+}
+
+
+viewProducts();
