@@ -23,7 +23,7 @@ function displayItems() {
         if (err) throw err;
 
         inquirer.prompt([{
-//get product type from user
+                //get product type from user
                 name: "product_name",
                 type: "list",
                 message: "Which product would you like to purchase?",
@@ -35,16 +35,16 @@ function displayItems() {
                     return choices
                 }
             },
-//get product quantity from user
+            //get product quantity from user
             {
                 name: "product_quantity",
                 type: "input",
                 message: "How many would you like to purchase?",
-                when: function(answers) {
+                when: function (answers) {
                     return answers.product_name
                 }
             }
-        ]).then(function(answers) {
+        ]).then(function (answers) {
 
             var splitSelectedItem = answers.product_name.split(":");
             var selectedItem = splitSelectedItem[0];
@@ -54,20 +54,53 @@ function displayItems() {
             var newProdQuant;
             var productPrice;
 
-            connection.query("SELECT * FROM products WHERE ?", [{item_id: selectedItem}], function(error, res) {
-                if (error) throw error;
-                    stockQuantity = parseInt(res[0].stock_quantity);
-                    newProdQuant = stockQuantity - productQuantity;
-                    productPrice = parseInt(res[0].price);
-                    total = productQuantity * productPrice;
+            connection.query("SELECT * FROM products WHERE ?", [{
+                item_id: selectedItem
+            }], function (err, res) {
+                if (err) throw err;
+                stockQuantity = parseInt(res[0].stock_quantity);
+                newProdQuant = stockQuantity - productQuantity;
+                productPrice = parseInt(res[0].price);
+                total = "$ " + productQuantity * productPrice;
 
-                    console.log(stockQuantity);
-                    console.log(newProdQuant);
-                    console.log(productPrice);
-                    console.log(total);
+                /*console.log(stockQuantity);
+                console.log(newProdQuant);
+                console.log(productPrice);
+                console.log(total);*/
+
+                if (newProdQuant < 0) {
+                    console.log("There is insufficient quantity to fulfill your order");
+                } else {
+                    connection.query("UPDATE products SET ? WHERE ?", [{
+                            stock_quantity: newProdQuant
+                        },
+                        {
+                            item_id: selectedItem
+                        }
+                    ], function (err, res) {
+                        if (err) throw err;
+                        console.log("Thank you for your order.  Your total is: " + total);
+                        console.log(newProdQuant);
+                        additionalPurchase();
+                    });
+
+                }
             })
         })
     })
 }
 
+function additionalPurchase() {
+    inquirer.prompt([{
+        type: "confirm",
+        name: "reply",
+        message: "Would you like to purchase another item?"
+    }]).then(function(ans) {
+        if(ans.reply) {
+            displayItems();
+        } else {
+            console.log("Thank you for shopping with us!");
+        }
+    });
+}
 displayItems();
