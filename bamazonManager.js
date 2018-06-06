@@ -40,7 +40,7 @@ function inventory() {
     })
 }
 
-
+//function to show table of all inventory
 function viewProducts() {
     connection.query("SELECT * FROM products", function (err, res) {
         var productTable = [];
@@ -58,6 +58,22 @@ function viewProducts() {
            
     })
 }
+//function to display items with inventory count lower than 5
+function viewLowInventory() {
+    connection.query("SELECT * FROM products WHERE stock_quantity < 5", function (err, res) {
+        console.log("There are less than 5 in stock of the following products");
+        var lowInventoryTable = [];
+        for (var i = 0; i < res.length; i++) {
+            lowInventoryTable[i] = 
+            {
+                ID: res[i].item_id,
+                Product: res[i].product_name,
+                Department: res[i].department_name,
+                Price: res[i].price,
+                Stock_Quantity: res[i].stock_quantity
+            };
+        }
+    })
+}
 
-
-viewProducts();
+viewLowInventory();
